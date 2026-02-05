@@ -60,7 +60,8 @@ class ReturnRule < ApplicationRecord
 
     schemer = JSONSchemer.schema(CONFIGURATION_SCHEMA)
     unless schemer.valid?(configuration)
-      errors.add(:configuration, "invalid schema: #{schemer.validate(configuration).map(&:message).join(', ')}")
+      errors_list = schemer.validate(configuration).map { |error| error['message'] || error.to_s }.join(', ')
+      errors.add(:configuration, "invalid schema: #{errors_list}")
     end
   end
 

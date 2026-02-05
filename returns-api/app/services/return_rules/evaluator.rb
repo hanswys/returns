@@ -1,63 +1,60 @@
 module ReturnRules
   class Evaluator
-    # Evaluates if a given order is eligible for return based on a rule's configuration
-    # @param order [Order] the order to evaluate
-    # @param configuration [Hash] the rule configuration from JSONB
-    # @return [Boolean] true if order is eligible, false otherwise
+    # Evaluator applies merchant return rules (JSONB) to an Order and returns a Decision
+    # Usage:
+    #   decision = ReturnRules::Evaluator.call(order, merchant.return_rules)
+    # or for single rule:
+    #   decision = ReturnRules::Evaluator.call(order, return_rule)
 
-    def self.call(order, configuration)
-      new(order, configuration).evaluate
+    STRATEGIES = [
+      Strategies::PriceThresholdStrategy,
+      Strategies::DateThresholdStrategy
+    ].freeze # so is .freeze optional? it does not change anything unless server is running dev version right?
+
+    def self.call(order, rules)
+      new(order, rules).call 
     end
 
-    def initialize(order, configuration)
+    def initialize(order, rules)
       @order = order
-      @configuration = configuration
+      # accept a single ReturnRule, ActiveRecord::Relation, or Array
+      @rules = Array.wrap(rules)
     end
 
-    def evaluate
-      return false if @configuration.blank?
+    # Returns a ReturnRules::Decision
+    def call
+      return Decision.new(:deny, reason: 'no_rules') if @rules.blank?
 
-      # Validate configuration has required fields
-      return false unless has_required_fields?
+      # Evaluate each rule and combine decisions with precedence: deny > approve > green_return
+      decisions = @rules.map { |rule| evaluate_rule(rule) } # runs it through the strategies
 
-      # Check if order is within return window
-      return false unless within_return_window?
+      return Decision.new(:deny, reason: 'rule_denied') if decisions.any?(&:deny?)
+      return Decision.new(:approve, reason: 'rule_approved') if decisions.any?(&:approve?)
+      return Decision.new(:green_return, reason: 'rule_green') if decisions.any?(&:green_return?)
 
-      # Check if at least one return option is enabled
-      return false unless has_return_option?
-
-      true
+      Decision.new(:deny, reason: 'no_positive_rule')
     end
 
     private
 
-    def has_required_fields?
-      window_days = @configuration['window_days']
-      
-      # Validate window_days exists and is a valid positive integer
-      return false unless window_days.present?
-      return false unless window_days.is_a?(Integer) || window_days.to_s.match?(/^\d+$/)
-      
-      window_days.to_i > 0
+    def evaluate_rule(rule)
+      config = rule.respond_to?(:configuration) ? (rule.configuration || {}) : rule
+
+      # Normalize keys to strings (JSONB may have symbols)
+      config = config.transform_keys(&:to_s) if config.respond_to?(:transform_keys)
+
+      strategy = select_strategy(config)
+      return Decision.new(:deny, reason: 'invalid_config') unless strategy
+
+      begin
+        strategy.new(@order, config).decide
+      rescue StandardError => e
+        Decision.new(:deny, reason: "strategy_error: #{e.class}")
+      end
     end
 
-    def within_return_window?
-      window_days = @configuration['window_days'].to_i
-      order_date = @order.order_date
-      days_since_order = (Time.zone.now.to_date - order_date).to_i
-      
-      days_since_order <= window_days
-    end
-
-    def has_return_option?
-      replacement_allowed = @configuration['replacement_allowed']
-      refund_allowed = @configuration['refund_allowed']
-
-      # Validate boolean values
-      replacement_allowed = ActiveModel::Type::Boolean.new.cast(replacement_allowed) if replacement_allowed.is_a?(String)
-      refund_allowed = ActiveModel::Type::Boolean.new.cast(refund_allowed) if refund_allowed.is_a?(String)
-
-      replacement_allowed.present? || refund_allowed.present?
+    def select_strategy(config)
+      STRATEGIES.find { |s| s.match?(config) }
     end
   end
 end
