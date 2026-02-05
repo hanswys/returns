@@ -1,0 +1,88 @@
+module Api
+  module V1
+    class ReturnRequestsController < BaseController
+      before_action :set_return_request, only: [:show, :update, :destroy, :approve, :reject, :ship, :mark_received, :resolve]
+
+      def index
+        @return_requests = ReturnRequest.all
+        render json: @return_requests, each_serializer: ReturnRequestSerializer
+      end
+
+      def show
+        render json: @return_request, serializer: ReturnRequestSerializer
+      end
+
+      def create
+        @return_request = ReturnRequest.new(return_request_params)
+        if @return_request.save
+          render json: @return_request, serializer: ReturnRequestSerializer, status: :created
+        else
+          render json: { errors: @return_request.errors }, status: :unprocessable_entity
+        end
+      end
+
+      def update
+        if @return_request.update(return_request_params)
+          render json: @return_request, serializer: ReturnRequestSerializer
+        else
+          render json: { errors: @return_request.errors }, status: :unprocessable_entity
+        end
+      end
+
+      def destroy
+        @return_request.destroy
+        head :no_content
+      end
+
+      def approve
+        if @return_request.approve!
+          render json: @return_request, serializer: ReturnRequestSerializer
+        else
+          render json: { error: 'Cannot approve return request' }, status: :unprocessable_entity
+        end
+      end
+
+      def reject
+        if @return_request.reject!
+          render json: @return_request, serializer: ReturnRequestSerializer
+        else
+          render json: { error: 'Cannot reject return request' }, status: :unprocessable_entity
+        end
+      end
+
+      def ship
+        if @return_request.ship!
+          render json: @return_request, serializer: ReturnRequestSerializer
+        else
+          render json: { error: 'Cannot ship return request' }, status: :unprocessable_entity
+        end
+      end
+
+      def mark_received
+        if @return_request.mark_received!
+          render json: @return_request, serializer: ReturnRequestSerializer
+        else
+          render json: { error: 'Cannot mark return request as received' }, status: :unprocessable_entity
+        end
+      end
+
+      def resolve
+        if @return_request.resolve!
+          render json: @return_request, serializer: ReturnRequestSerializer
+        else
+          render json: { error: 'Cannot resolve return request' }, status: :unprocessable_entity
+        end
+      end
+
+      private
+
+      def set_return_request
+        @return_request = ReturnRequest.find(params[:id])
+      end
+
+      def return_request_params
+        params.require(:return_request).permit(:order_id, :product_id, :merchant_id, :reason, :requested_date, :status)
+      end
+    end
+  end
+end
