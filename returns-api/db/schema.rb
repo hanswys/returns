@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_05_002611) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_05_034538) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -71,14 +71,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_05_002611) do
   end
 
   create_table "return_rules", force: :cascade do |t|
+    t.jsonb "configuration", default: {}, null: false
     t.datetime "created_at", null: false
     t.bigint "merchant_id", null: false
     t.bigint "product_id"
-    t.string "reason"
-    t.boolean "refund_allowed", default: true, null: false
-    t.boolean "replacement_allowed", default: true, null: false
     t.datetime "updated_at", null: false
-    t.integer "window_days", null: false
+    t.index ["configuration"], name: "index_return_rules_on_configuration", using: :gin
     t.index ["merchant_id", "product_id"], name: "index_return_rules_on_merchant_id_and_product_id", unique: true
     t.index ["merchant_id"], name: "index_return_rules_on_merchant_id"
     t.index ["product_id"], name: "index_return_rules_on_product_id"

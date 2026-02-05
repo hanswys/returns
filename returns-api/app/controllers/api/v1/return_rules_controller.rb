@@ -46,7 +46,7 @@ module Api
       end
 
       def return_rule_params
-        params.require(:return_rule).permit(:product_id, :window_days, :reason, :replacement_allowed, :refund_allowed)
+        params.require(:return_rule).permit(:product_id, configuration: [:window_days, :replacement_allowed, :refund_allowed, :reason])
       end
     end
   end
