@@ -8,11 +8,27 @@ module Api
         render json: @return_requests, each_serializer: ReturnRequestSerializer
       end
 
+      # GET /api/v1/merchants/:merchant_id/returns
+      def by_merchant
+        @return_requests = ReturnRequest.where(merchant_id: params[:merchant_id])
+        @return_requests = @return_requests.where(status: params[:status]) if params[:status].present?
+        @return_requests = @return_requests.order(created_at: :desc)
+        render json: @return_requests, each_serializer: ReturnRequestSerializer
+      end
+
       def show
         render json: @return_request, serializer: ReturnRequestSerializer
       end
 
       def create
+        # Check for idempotency - return existing request if duplicate
+        if params[:return_request][:idempotency_key].present?
+          existing = ReturnRequest.find_by(idempotency_key: params[:return_request][:idempotency_key])
+          if existing
+            return render json: existing, serializer: ReturnRequestSerializer, status: :ok
+          end
+        end
+
         @return_request = ReturnRequest.new(return_request_params)
         
         # Enforce return rules before accepting request
@@ -95,7 +111,7 @@ module Api
       end
 
       def return_request_params
-        params.require(:return_request).permit(:order_id, :product_id, :merchant_id, :reason, :requested_date, :status)
+        params.require(:return_request).permit(:order_id, :product_id, :merchant_id, :reason, :requested_date, :status, :idempotency_key)
       end
 
       def check_eligibility(return_request)

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import Dashboard from './pages/Dashboard.jsx';
 import { CustomerPortal } from './components/CustomerPortal';
+import MerchantReturns from './components/MerchantDashboard/MerchantReturns';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,6 +14,12 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const TABS = [
+  { id: 'portal', label: 'Customer Portal' },
+  { id: 'merchant', label: 'Merchant Dashboard' },
+  { id: 'admin', label: 'Admin' },
+];
 
 function App() {
   const [activeTab, setActiveTab] = useState('portal');
@@ -30,33 +37,30 @@ function App() {
                 </h1>
               </div>
               <div className="flex items-center space-x-1">
-                <button
-                  onClick={() => setActiveTab('portal')}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    activeTab === 'portal'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Customer Portal
-                </button>
-                <button
-                  onClick={() => setActiveTab('admin')}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    activeTab === 'admin'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Admin Dashboard
-                </button>
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${
+                      activeTab === tab.id
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         </nav>
 
         {/* Content */}
-        {activeTab === 'portal' ? <CustomerPortal /> : <Dashboard />}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {activeTab === 'portal' && <CustomerPortal />}
+          {activeTab === 'merchant' && <MerchantReturns />}
+          {activeTab === 'admin' && <Dashboard />}
+        </main>
       </div>
     </QueryClientProvider>
   );

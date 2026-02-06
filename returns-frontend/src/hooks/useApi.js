@@ -117,6 +117,13 @@ export const useReturnRequests = () => useQuery({
   queryFn: () => returnRequestsAPI.getAll(),
 });
 
+// Merchant-specific return requests
+export const useMerchantReturns = (merchantId, status) => useQuery({
+  queryKey: ['merchantReturns', merchantId, status],
+  queryFn: () => returnRequestsAPI.getByMerchant(merchantId, status),
+  enabled: !!merchantId,
+});
+
 export const useReturnRequest = (id) => useQuery({
   queryKey: ['returnRequest', id],
   queryFn: () => returnRequestsAPI.getById(id),

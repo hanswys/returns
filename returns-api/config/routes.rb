@@ -25,6 +25,14 @@ Rails.application.routes.draw do
           patch :resolve
         end
       end
+
+      # Merchant Returns Dashboard
+      get 'merchants/:merchant_id/returns', to: 'return_requests#by_merchant', as: :merchant_returns
+
+      # Webhooks
+      namespace :webhooks do
+        post :carrier
+      end
     end
   end
 end

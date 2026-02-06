@@ -32,6 +32,10 @@ export const ordersAPI = {
 export const returnRequestsAPI = {
   getAll: () => apiClient.get('/return_requests'),
   getById: (id) => apiClient.get(`/return_requests/${id}`),
+  getByMerchant: (merchantId, status) => {
+    const params = status ? { status } : {};
+    return apiClient.get(`/merchants/${merchantId}/returns`, { params });
+  },
   create: (data) => apiClient.post('/return_requests', { return_request: data }),
   update: (id, data) => apiClient.put(`/return_requests/${id}`, { return_request: data }),
   delete: (id) => apiClient.delete(`/return_requests/${id}`),
