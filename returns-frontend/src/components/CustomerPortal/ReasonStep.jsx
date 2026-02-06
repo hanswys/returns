@@ -19,11 +19,16 @@ export default function ReasonStep({ order, selectedProducts, onSubmit, onBack }
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Generate unique idempotency key to prevent duplicate submissions
+    // Key includes order ID + timestamp + UUID for uniqueness
+    const idempotencyKey = `batch-${order.id}-${Date.now()}-${crypto.randomUUID()}`;
+
     // Build batch payload for all selected products
     const batchPayload = {
       order_id: order.id,
       merchant_id: order.merchant_id,
       reason: additionalNotes ? `${reason}: ${additionalNotes}` : reason,
+      idempotency_key: idempotencyKey,
       items: selectedProducts.map((product) => ({
         product_id: product.id,
       })),
