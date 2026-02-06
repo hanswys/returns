@@ -138,6 +138,14 @@ export const useCreateReturnRequest = () => {
   });
 };
 
+export const useCreateBatchReturnRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => returnRequestsAPI.createBatch(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['returnRequests'] }),
+  });
+};
+
 export const useApproveReturnRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({

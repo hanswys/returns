@@ -17,6 +17,9 @@ Rails.application.routes.draw do
         end
       end
       resources :return_requests do
+        collection do
+          post :batch, action: :create_batch
+        end
         member do
           patch :approve
           patch :reject

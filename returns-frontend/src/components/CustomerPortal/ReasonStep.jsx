@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCreateReturnRequest } from '../../hooks/useApi';
+import { useCreateBatchReturnRequest } from '../../hooks/useApi';
 
 const RETURN_REASONS = [
   { value: 'defective', label: 'Defective or damaged' },
@@ -14,24 +14,25 @@ const RETURN_REASONS = [
 export default function ReasonStep({ order, selectedProducts, onSubmit, onBack }) {
   const [reason, setReason] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
-  const createReturnRequest = useCreateReturnRequest();
+  const createBatchReturnRequest = useCreateBatchReturnRequest();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Create a return request for each selected product
-    const requests = selectedProducts.map((product) => ({
+    // Build batch payload for all selected products
+    const batchPayload = {
       order_id: order.id,
-      product_id: product.id,
       merchant_id: order.merchant_id,
       reason: additionalNotes ? `${reason}: ${additionalNotes}` : reason,
-      requested_date: new Date().toISOString().split('T')[0],
-    }));
+      items: selectedProducts.map((product) => ({
+        product_id: product.id,
+      })),
+    };
 
     try {
-      // Submit first request (for simplicity, could batch in production)
-      const response = await createReturnRequest.mutateAsync(requests[0]);
-      onSubmit(response.data);
+      const response = await createBatchReturnRequest.mutateAsync(batchPayload);
+      // Pass first request for status display, but all are created
+      onSubmit(response.data[0] || response.data);
     } catch (error) {
       // Error handled by mutation state
     }
@@ -102,17 +103,17 @@ export default function ReasonStep({ order, selectedProducts, onSubmit, onBack }
           />
         </div>
 
-        {createReturnRequest.isError && (
+        {createBatchReturnRequest.isError && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm font-medium text-red-800 mb-1">
-              {createReturnRequest.error?.response?.data?.error || 'Return request failed'}
+              {createBatchReturnRequest.error?.response?.data?.error || 'Return request failed'}
             </p>
-            {createReturnRequest.error?.response?.data?.details && (
+            {createBatchReturnRequest.error?.response?.data?.details && (
               <p className="text-sm text-red-600">
-                {createReturnRequest.error.response.data.details}
+                {createBatchReturnRequest.error.response.data.details}
               </p>
             )}
-            {!createReturnRequest.error?.response?.data?.details && (
+            {!createBatchReturnRequest.error?.response?.data?.details && (
               <p className="text-sm text-red-600">
                 Please try again or contact support.
               </p>
@@ -130,10 +131,10 @@ export default function ReasonStep({ order, selectedProducts, onSubmit, onBack }
           </button>
           <button
             type="submit"
-            disabled={!reason || createReturnRequest.isPending}
+            disabled={!reason || createBatchReturnRequest.isPending}
             className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
-            {createReturnRequest.isPending ? 'Submitting...' : 'Submit Return Request'}
+            {createBatchReturnRequest.isPending ? 'Processing...' : 'Submit Return Request'}
           </button>
         </div>
       </form>

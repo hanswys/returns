@@ -37,6 +37,7 @@ export const returnRequestsAPI = {
     return apiClient.get(`/merchants/${merchantId}/returns`, { params });
   },
   create: (data) => apiClient.post('/return_requests', { return_request: data }),
+  createBatch: (data) => apiClient.post('/return_requests/batch', data),
   update: (id, data) => apiClient.put(`/return_requests/${id}`, { return_request: data }),
   delete: (id) => apiClient.delete(`/return_requests/${id}`),
   approve: (id) => apiClient.patch(`/return_requests/${id}/approve`),

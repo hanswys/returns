@@ -93,7 +93,26 @@ module Api
         params.require(:return_request).permit(:order_id, :product_id, :merchant_id, :reason, :requested_date, :status, :idempotency_key)
       end
 
+      # POST /api/v1/return_requests/batch
+      def create_batch
+        result = BatchReturnRequestCreator.call(batch_params)
 
+        if result.success?
+          render json: result.return_requests, each_serializer: ReturnRequestSerializer, status: :created
+        else
+          render json: result.error_response, status: :unprocessable_entity
+        end
+      end
+
+      def batch_params
+        params.permit(
+          :order_id,
+          :merchant_id,
+          :reason,
+          :idempotency_key,
+          items: [:product_id, :notes]
+        )
+      end
     end
   end
 end
