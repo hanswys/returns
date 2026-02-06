@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_06_041049) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_06_054504) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,6 +58,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_06_041049) do
     t.string "carrier"
     t.datetime "created_at", null: false
     t.string "idempotency_key"
+    t.text "label_generation_error"
+    t.datetime "label_generation_failed_at"
     t.string "label_url"
     t.bigint "merchant_id", null: false
     t.bigint "order_id", null: false
