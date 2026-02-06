@@ -66,7 +66,7 @@ describe ReturnRule do
 
   describe '#eligible?' do
     let(:merchant) { create(:merchant) }
-    let(:rule) { create(:return_rule, merchant:, configuration: { window_days: 30 }) }
+    let(:rule) { create(:return_rule, merchant:, configuration: { window_days: 30, replacement_allowed: true, refund_allowed: true }) }
     let(:order) { create(:order, merchant:, order_date: 10.days.ago) }
 
     it 'delegates to ReturnRules::Evaluator' do

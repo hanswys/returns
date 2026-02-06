@@ -28,8 +28,8 @@ module ReturnRules
       private
 
       def extract_order_date
-        if @order.respond_to?(:order_date)
-          @order.order_date
+        if @order.respond_to?(:order_date) && @order.order_date.present?
+          @order.order_date.to_date
         elsif @order.respond_to?(:created_at)
           @order.created_at.to_date
         else

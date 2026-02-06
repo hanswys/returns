@@ -1,37 +1,27 @@
+# frozen_string_literal: true
+
 class ReturnRule < ApplicationRecord
   belongs_to :merchant
   belongs_to :product, optional: true
 
-  # Store accessor for JSONB configuration fields
+  # Store accessor for JSONB configuration fields (accesses them as attributes)
+  # First value must be db jsonb
   store_accessor :configuration, :window_days, :replacement_allowed, :refund_allowed, :reason
 
+  # Validations
   validates :merchant_id, presence: true
-  validate :configuration_valid
-  validate :configuration_schema_valid
-  validate :at_least_one_option_enabled
-
-  # JSON Schema definition for configuration validation
-  CONFIGURATION_SCHEMA = {
-    type: 'object',
-    properties: {
-      window_days: { type: 'integer', minimum: 1 },
-      replacement_allowed: { type: 'boolean' },
-      refund_allowed: { type: 'boolean' },
-      reason: { type: ['string', 'null'] }
-    },
-    required: ['window_days', 'replacement_allowed', 'refund_allowed'],
-    additionalProperties: false
-  }.freeze
+  validates_with ReturnRules::ConfigurationSchemaValidator # must have a validate method
+  validate :configuration_business_rules
 
   def initialize(attributes = {})
-    # Ensure configuration defaults to empty hash
-    super
+    super # sets up db conn
     self.configuration ||= {}
   end
 
   # Type casting for configuration values from forms/API
+  # Delegated to Configuration value object for consistency
   def window_days=(value)
-    super(value.to_i) if value.present?
+    super(value.present? ? value.to_i : nil)
   end
 
   def replacement_allowed=(value)
@@ -47,32 +37,21 @@ class ReturnRule < ApplicationRecord
     ReturnRules::Evaluator.call(order, configuration)
   end
 
+  # Build a Configuration value object from current configuration
+  def configuration_object
+    ReturnRules::Configuration.new(configuration)
+  end
+
   private
 
-  def configuration_valid
-    unless configuration.is_a?(Hash)
-      errors.add(:configuration, 'must be a valid hash')
-    end
-  end
-
-  def configuration_schema_valid
-    return if configuration.blank? || !configuration.is_a?(Hash)
-
-    schemer = JSONSchemer.schema(CONFIGURATION_SCHEMA)
-    unless schemer.valid?(configuration)
-      errors_list = schemer.validate(configuration).map { |error| error['message'] || error.to_s }.join(', ')
-      errors.add(:configuration, "invalid schema: #{errors_list}")
-    end
-  end
-
-  def at_least_one_option_enabled
+  def configuration_business_rules
     return if configuration.blank?
 
-    replacement = ActiveModel::Type::Boolean.new.cast(configuration['replacement_allowed'])
-    refund = ActiveModel::Type::Boolean.new.cast(configuration['refund_allowed'])
+    config_obj = configuration_object
+    return if config_obj.valid?
 
-    unless replacement || refund
-      errors.add(:base, 'At least one of replacement_allowed or refund_allowed must be true')
+    config_obj.errors.each do |error|
+      errors.add(error.attribute, error.message)
     end
   end
 end

@@ -5,6 +5,9 @@ class ReturnRequest < ApplicationRecord
   belongs_to :product
   belongs_to :merchant
 
+  # Rails enum for status - must match AASM states
+  enum :status, { requested: 0, approved: 1, rejected: 2, shipped: 3, received: 4, resolved: 5 }
+
   validates :reason, presence: true
   validates :requested_date, presence: true
 
