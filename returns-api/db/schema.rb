@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_05_034538) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_06_034925) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,13 +55,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_05_034538) do
   end
 
   create_table "return_requests", force: :cascade do |t|
+    t.string "carrier"
     t.datetime "created_at", null: false
+    t.string "label_url"
     t.bigint "merchant_id", null: false
     t.bigint "order_id", null: false
     t.bigint "product_id", null: false
     t.text "reason", null: false
     t.datetime "requested_date", null: false
     t.integer "status", default: 0, null: false
+    t.string "tracking_number"
     t.datetime "updated_at", null: false
     t.index ["merchant_id"], name: "index_return_requests_on_merchant_id"
     t.index ["order_id", "product_id"], name: "index_return_requests_on_order_id_and_product_id", unique: true

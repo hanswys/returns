@@ -104,9 +104,19 @@ export default function ReasonStep({ order, selectedProducts, onSubmit, onBack }
 
         {createReturnRequest.isError && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">
-              Failed to submit return request. Please try again.
+            <p className="text-sm font-medium text-red-800 mb-1">
+              {createReturnRequest.error?.response?.data?.error || 'Return request failed'}
             </p>
+            {createReturnRequest.error?.response?.data?.details && (
+              <p className="text-sm text-red-600">
+                {createReturnRequest.error.response.data.details}
+              </p>
+            )}
+            {!createReturnRequest.error?.response?.data?.details && (
+              <p className="text-sm text-red-600">
+                Please try again or contact support.
+              </p>
+            )}
           </div>
         )}
 

@@ -14,7 +14,21 @@ module Api
 
       def create
         @return_request = ReturnRequest.new(return_request_params)
+        
+        # Enforce return rules before accepting request
+        eligibility_check = check_eligibility(@return_request)
+        unless eligibility_check[:eligible]
+          return render json: { 
+            error: 'Return not allowed', 
+            reason: eligibility_check[:reason],
+            details: eligibility_check[:details]
+          }, status: :unprocessable_entity
+        end
+
         if @return_request.save
+          # Trigger background job to generate shipping label
+          GenerateShippingLabelJob.perform_later(@return_request.id)
+          
           render json: @return_request, serializer: ReturnRequestSerializer, status: :created
         else
           render json: { errors: @return_request.errors }, status: :unprocessable_entity
@@ -82,6 +96,45 @@ module Api
 
       def return_request_params
         params.require(:return_request).permit(:order_id, :product_id, :merchant_id, :reason, :requested_date, :status)
+      end
+
+      def check_eligibility(return_request)
+        order = return_request.order
+        merchant = return_request.merchant
+
+        # Find the applicable return rule for this merchant
+        return_rule = ReturnRule.find_by(merchant_id: merchant&.id)
+
+        # If no return rule exists, deny by default
+        unless return_rule
+          return {
+            eligible: false,
+            reason: 'no_return_policy',
+            details: 'This merchant does not have a return policy configured'
+          }
+        end
+
+        # Use the Evaluator to check eligibility
+        decision = return_rule.eligible?(order)
+
+        if decision.status == :approve
+          { eligible: true }
+        else
+          {
+            eligible: false,
+            reason: decision.reason || 'not_eligible',
+            details: build_rejection_details(return_rule, order)
+          }
+        end
+      end
+
+      def build_rejection_details(return_rule, order)
+        window_days = return_rule.configuration['window_days']
+        order_date = order.order_date.to_date
+        deadline = order_date + window_days.days
+        days_since = (Date.current - order_date).to_i
+
+        "Return window is #{window_days} days. Order was placed #{days_since} days ago (#{order_date.strftime('%B %d, %Y')}). Return deadline was #{deadline.strftime('%B %d, %Y')}."
       end
     end
   end

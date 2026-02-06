@@ -67,7 +67,7 @@ puts "Created #{products.count} products"
 puts 'Creating orders...'
 orders_data = [
   # TechGear Pro orders
-  { merchant: merchants[0], order_number: 'TG-ORD-1001', customer_email: 'john.doe@email.com', customer_name: 'John Doe', total_amount: 129.98, order_date: 5.days.ago, status: :delivered },
+  { merchant: merchants[0], order_number: 'TG-ORD-1001', customer_email: 'john.doe@email.com', customer_name: 'John Doe', total_amount: 129.98, order_date: 80.days.ago, status: :delivered },
   { merchant: merchants[0], order_number: 'TG-ORD-1002', customer_email: 'jane.smith@email.com', customer_name: 'Jane Smith', total_amount: 179.98, order_date: 10.days.ago, status: :delivered },
   { merchant: merchants[0], order_number: 'TG-ORD-1003', customer_email: 'bob.wilson@email.com', customer_name: 'Bob Wilson', total_amount: 59.99, order_date: 3.days.ago, status: :shipped },
   
