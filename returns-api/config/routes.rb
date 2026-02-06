@@ -11,7 +11,11 @@ Rails.application.routes.draw do
         resources :products
         resources :return_rules
       end
-      resources :orders
+      resources :orders do
+        collection do
+          get :lookup
+        end
+      end
       resources :return_requests do
         member do
           patch :approve

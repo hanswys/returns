@@ -8,6 +8,21 @@ module Api
         render json: @orders, each_serializer: OrderSerializer
       end
 
+      # Customer portal order lookup
+      # GET /api/v1/orders/lookup?email=...&order_number=...
+      def lookup
+        @order = Order.find_by(
+          customer_email: params[:email],
+          order_number: params[:order_number]
+        )
+
+        if @order
+          render json: @order, serializer: OrderSerializer, include: ['merchant.products']
+        else
+          render json: { error: 'Order not found' }, status: :not_found
+        end
+      end
+
       def show
         render json: @order, serializer: OrderSerializer
       end

@@ -104,6 +104,13 @@ export const useCreateOrder = () => {
   });
 };
 
+// Customer portal order lookup
+export const useOrderLookup = () => {
+  return useMutation({
+    mutationFn: ({ email, orderNumber }) => ordersAPI.lookup(email, orderNumber),
+  });
+};
+
 // Return Requests hooks
 export const useReturnRequests = () => useQuery({
   queryKey: ['returnRequests'],

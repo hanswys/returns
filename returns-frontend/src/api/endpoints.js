@@ -22,6 +22,7 @@ export const productsAPI = {
 export const ordersAPI = {
   getAll: () => apiClient.get('/orders'),
   getById: (id) => apiClient.get(`/orders/${id}`),
+  lookup: (email, orderNumber) => apiClient.get('/orders/lookup', { params: { email, order_number: orderNumber } }),
   create: (data) => apiClient.post('/orders', { order: data }),
   update: (id, data) => apiClient.put(`/orders/${id}`, { order: data }),
   delete: (id) => apiClient.delete(`/orders/${id}`),
