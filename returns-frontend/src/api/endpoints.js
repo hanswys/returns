@@ -57,3 +57,8 @@ export const returnRulesAPI = {
   update: (merchantId, id, data) => apiClient.put(`/merchants/${merchantId}/return_rules/${id}`, { return_rule: data }),
   delete: (merchantId, id) => apiClient.delete(`/merchants/${merchantId}/return_rules/${id}`),
 };
+
+// Analytics API
+export const analyticsAPI = {
+  getByMerchant: (merchantId) => apiClient.get(`/merchants/${merchantId}/analytics`),
+};

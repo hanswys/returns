@@ -10,6 +10,7 @@ Rails.application.routes.draw do
       resources :merchants do
         resources :products
         resources :return_rules
+        resource :analytics, only: [:show]
       end
       resources :orders do
         collection do

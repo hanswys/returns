@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { merchantsAPI, productsAPI, ordersAPI, returnRequestsAPI, returnRulesAPI } from '../api/endpoints';
+import { merchantsAPI, productsAPI, ordersAPI, returnRequestsAPI, returnRulesAPI, analyticsAPI } from '../api/endpoints';
 
 // Merchants hooks
 export const useMerchants = () => useQuery({
@@ -197,3 +197,10 @@ export const useCreateReturnRule = () => {
     },
   });
 };
+
+// Analytics hooks
+export const useMerchantAnalytics = (merchantId) => useQuery({
+  queryKey: ['analytics', merchantId],
+  queryFn: () => analyticsAPI.getByMerchant(merchantId),
+  enabled: !!merchantId,
+});

@@ -4,6 +4,7 @@ import './index.css';
 import Dashboard from './pages/Dashboard.jsx';
 import { CustomerPortal } from './components/CustomerPortal';
 import MerchantReturns from './components/MerchantDashboard/MerchantReturns';
+import AnalyticsDashboard from './components/MerchantDashboard/AnalyticsDashboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,6 +19,7 @@ const queryClient = new QueryClient({
 const TABS = [
   { id: 'portal', label: 'Customer Portal' },
   { id: 'merchant', label: 'Merchant Dashboard' },
+  { id: 'analytics', label: 'Analytics' },
   { id: 'admin', label: 'Admin' },
 ];
 
@@ -59,6 +61,7 @@ function App() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {activeTab === 'portal' && <CustomerPortal />}
           {activeTab === 'merchant' && <MerchantReturns />}
+          {activeTab === 'analytics' && <AnalyticsDashboard />}
           {activeTab === 'admin' && <Dashboard />}
         </main>
       </div>
