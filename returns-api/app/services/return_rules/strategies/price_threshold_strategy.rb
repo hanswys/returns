@@ -3,6 +3,8 @@
 module ReturnRules
   module Strategies
     class PriceThresholdStrategy
+      include Registry  # Auto-registers this strategy
+
       # Matches when configuration defines a price threshold (key: 'price_threshold' or 'max_order_total')
       def self.match?(config)
         config.is_a?(Hash) && (config.key?('price_threshold') || config.key?('max_order_total'))

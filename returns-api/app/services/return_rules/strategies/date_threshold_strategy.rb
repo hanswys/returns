@@ -3,6 +3,8 @@
 module ReturnRules
   module Strategies
     class DateThresholdStrategy
+      include Registry  # Auto-registers this strategy
+
       def self.match?(config)
         config.is_a?(Hash) && config.key?('window_days')
       end

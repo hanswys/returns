@@ -6,11 +6,6 @@ module ReturnRules
     # or for single rule:
     #   decision = ReturnRules::Evaluator.call(order, return_rule)
 
-    STRATEGIES = [
-      Strategies::PriceThresholdStrategy,
-      Strategies::DateThresholdStrategy
-    ].freeze # so is .freeze optional? it does not change anything unless server is running dev version right?
-
     def self.call(order, rules)
       new(order, rules).call 
     end
@@ -54,7 +49,9 @@ module ReturnRules
     end
 
     def select_strategy(config)
-      STRATEGIES.find { |s| s.match?(config) }
+      # Use Registry for OCP - new strategies auto-register
+      Strategies::Registry.find_for(config)
     end
   end
 end
+

@@ -40,7 +40,7 @@ RSpec.describe StatusAuditLog, type: :model do
 
       expect(log.from_status).to eq('requested')
       expect(log.to_status).to eq('approved')
-      expect(log.event).to eq('approve!')
+      expect(log.event).to eq('approve')
       expect(log.triggered_by).to eq('system')
     end
 
@@ -61,7 +61,7 @@ RSpec.describe StatusAuditLog, type: :model do
       expect(return_request.status_audit_logs.count).to eq(4)
 
       events = return_request.status_audit_logs.order(:created_at).pluck(:event)
-      expect(events).to eq(%w[approve! ship! mark_received! resolve!])
+      expect(events).to eq(%w[approve ship mark_received resolve])
     end
   end
 
@@ -73,11 +73,11 @@ RSpec.describe StatusAuditLog, type: :model do
 
     it '.recent orders by created_at desc' do
       logs = return_request.status_audit_logs.recent
-      expect(logs.first.event).to eq('ship!')
+      expect(logs.first.event).to eq('ship')
     end
 
     it '.for_event filters by event name' do
-      logs = StatusAuditLog.for_event('approve!')
+      logs = StatusAuditLog.for_event('approve')
       expect(logs.count).to eq(1)
     end
   end
