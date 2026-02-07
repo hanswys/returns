@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useCreateBatchReturnRequest } from '../../hooks/useApi';
 
 const RETURN_REASONS = [
@@ -14,16 +14,32 @@ const RETURN_REASONS = [
 export default function ReasonStep({ order, selectedProducts, onSubmit, onBack }) {
   const [reason, setReason] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const createBatchReturnRequest = useCreateBatchReturnRequest();
+  
+  // Track if form has been submitted to prevent resubmission
+  const hasSubmitted = useRef(false);
+
+  // Generate STABLE idempotency key once per form session
+  // Key is based on order + selected product IDs, so same selection = same key
+  const idempotencyKey = useMemo(() => {
+    const productIds = selectedProducts.map(p => p.id).sort().join('-');
+    const sessionId = crypto.randomUUID();
+    return `batch-${order.id}-${productIds}-${sessionId}`;
+  }, [order.id, selectedProducts]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent double submissions
+    if (isSubmitting || hasSubmitted.current) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    hasSubmitted.current = true;
 
-    // Generate unique idempotency key to prevent duplicate submissions
-    // Key includes order ID + timestamp + UUID for uniqueness
-    const idempotencyKey = `batch-${order.id}-${Date.now()}-${crypto.randomUUID()}`;
-
-    // Build batch payload for all selected products
+    // Build batch payload - idempotency key is now stable
     const batchPayload = {
       order_id: order.id,
       merchant_id: order.merchant_id,
@@ -39,7 +55,9 @@ export default function ReasonStep({ order, selectedProducts, onSubmit, onBack }
       // Pass first request for status display, but all are created
       onSubmit(response.data[0] || response.data);
     } catch (error) {
-      // Error handled by mutation state
+      // Allow retry on error
+      hasSubmitted.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -136,10 +154,10 @@ export default function ReasonStep({ order, selectedProducts, onSubmit, onBack }
           </button>
           <button
             type="submit"
-            disabled={!reason || createBatchReturnRequest.isPending}
+            disabled={!reason || isSubmitting}
             className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
-            {createBatchReturnRequest.isPending ? 'Processing...' : 'Submit Return Request'}
+            {isSubmitting ? 'Processing...' : 'Submit Return Request'}
           </button>
         </div>
       </form>
