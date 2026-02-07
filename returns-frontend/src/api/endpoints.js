@@ -45,6 +45,7 @@ export const returnRequestsAPI = {
   ship: (id) => apiClient.patch(`/return_requests/${id}/ship`),
   markReceived: (id) => apiClient.patch(`/return_requests/${id}/mark_received`),
   resolve: (id) => apiClient.patch(`/return_requests/${id}/resolve`),
+  getAuditLogs: (id) => apiClient.get(`/return_requests/${id}/audit_logs`),
   getLabelUrl: (labelUrl) => `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:3000'}${labelUrl}`,
 };
 

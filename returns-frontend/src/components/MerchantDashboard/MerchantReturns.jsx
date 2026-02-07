@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useMerchantReturns, useMerchants } from '../../hooks/useApi';
 import { returnRequestsAPI } from '../../api/endpoints';
 import { useQueryClient } from '@tanstack/react-query';
+import AuditLogModal from './AuditLogModal';
 
 const STATUS_BADGES = {
   requested: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
@@ -24,6 +25,7 @@ const STATUS_FILTERS = [
 export default function MerchantReturns() {
   const [selectedMerchant, setSelectedMerchant] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [auditLogId, setAuditLogId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: merchantsResponse, isLoading: loadingMerchants } = useMerchants();
@@ -171,6 +173,12 @@ export default function MerchantReturns() {
                             Label
                           </a>
                         )}
+                        <button
+                          onClick={() => setAuditLogId(ret.id)}
+                          className="px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
+                        >
+                          History
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -179,6 +187,14 @@ export default function MerchantReturns() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Audit Log Modal */}
+      {auditLogId && (
+        <AuditLogModal
+          returnRequestId={auditLogId}
+          onClose={() => setAuditLogId(null)}
+        />
       )}
     </div>
   );

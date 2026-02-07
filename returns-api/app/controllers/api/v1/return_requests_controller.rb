@@ -1,7 +1,7 @@
 module Api
   module V1
     class ReturnRequestsController < BaseController
-      before_action :set_return_request, only: [:show, :update, :destroy, :approve, :reject, :ship, :mark_received, :resolve]
+      before_action :set_return_request, only: [:show, :update, :destroy, :approve, :reject, :ship, :mark_received, :resolve, :audit_logs]
 
       def index
         @return_requests = ReturnRequest.all
@@ -88,6 +88,11 @@ module Api
         end
       end
 
+      # GET /api/v1/return_requests/:id/audit_logs
+      def audit_logs
+        logs = @return_request.status_audit_logs.recent
+        render json: logs, each_serializer: StatusAuditLogSerializer
+      end
 
       private
 

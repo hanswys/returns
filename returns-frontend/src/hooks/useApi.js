@@ -146,6 +146,12 @@ export const useCreateBatchReturnRequest = () => {
   });
 };
 
+export const useAuditLogs = (returnRequestId) => useQuery({
+  queryKey: ['auditLogs', returnRequestId],
+  queryFn: () => returnRequestsAPI.getAuditLogs(returnRequestId),
+  enabled: !!returnRequestId,
+});
+
 export const useApproveReturnRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -153,6 +159,7 @@ export const useApproveReturnRequest = () => {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['returnRequests'] });
       queryClient.invalidateQueries({ queryKey: ['returnRequest', id] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs', id] });
     },
   });
 };

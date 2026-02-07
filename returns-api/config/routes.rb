@@ -26,6 +26,7 @@ Rails.application.routes.draw do
           patch :ship
           patch :mark_received
           patch :resolve
+          get :audit_logs
         end
       end
 
