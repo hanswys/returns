@@ -4,13 +4,14 @@ module Api
       before_action :set_return_request, only: [:show, :update, :destroy, :approve, :reject, :ship, :mark_received, :resolve, :audit_logs]
 
       def index
-        @return_requests = ReturnRequest.all
+        @return_requests = ReturnRequest.includes(:order, :product, :merchant).all
         render json: @return_requests, each_serializer: ReturnRequestSerializer
       end
 
       # GET /api/v1/merchants/:merchant_id/returns
       def by_merchant
-        @return_requests = ReturnRequest.where(merchant_id: params[:merchant_id])
+        @return_requests = ReturnRequest.includes(:order, :product, :merchant)
+          .where(merchant_id: params[:merchant_id])
         @return_requests = @return_requests.where(status: params[:status]) if params[:status].present?
         @return_requests = @return_requests.order(created_at: :desc)
         render json: @return_requests, each_serializer: ReturnRequestSerializer
@@ -43,49 +44,27 @@ module Api
         head :no_content
       end
 
+      # AASM transition actions - using concern pattern
+      include AasmActions
+
       def approve
-        Current.actor = 'admin:api'
-        if @return_request.approve!
-          render json: @return_request, serializer: ReturnRequestSerializer
-        else
-          render json: { error: 'Cannot approve return request' }, status: :unprocessable_entity
-        end
+        perform_transition(:approve)
       end
 
       def reject
-        Current.actor = 'admin:api'
-        if @return_request.reject!
-          render json: @return_request, serializer: ReturnRequestSerializer
-        else
-          render json: { error: 'Cannot reject return request' }, status: :unprocessable_entity
-        end
+        perform_transition(:reject)
       end
 
       def ship
-        Current.actor = 'admin:api'
-        if @return_request.ship!
-          render json: @return_request, serializer: ReturnRequestSerializer
-        else
-          render json: { error: 'Cannot ship return request' }, status: :unprocessable_entity
-        end
+        perform_transition(:ship)
       end
 
       def mark_received
-        Current.actor = 'admin:api'
-        if @return_request.mark_received!
-          render json: @return_request, serializer: ReturnRequestSerializer
-        else
-          render json: { error: 'Cannot mark return request as received' }, status: :unprocessable_entity
-        end
+        perform_transition(:mark_received)
       end
 
       def resolve
-        Current.actor = 'admin:api'
-        if @return_request.resolve!
-          render json: @return_request, serializer: ReturnRequestSerializer
-        else
-          render json: { error: 'Cannot resolve return request' }, status: :unprocessable_entity
-        end
+        perform_transition(:resolve)
       end
 
       # GET /api/v1/return_requests/:id/audit_logs

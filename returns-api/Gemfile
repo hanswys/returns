@@ -73,3 +73,5 @@ group :development, :test do
   # Matchers for testing
   gem "shoulda-matchers", "~> 5.0"
 end
+
+gem "rack-attack", "~> 6.8"
