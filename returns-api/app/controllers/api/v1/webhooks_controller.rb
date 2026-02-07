@@ -30,6 +30,8 @@ module Api
           return render json: { error: 'Return request not found' }, status: :not_found
         end
 
+        # Set actor for audit logging
+        Current.actor = 'webhook:carrier'
         result = process_carrier_status(return_request, status)
 
         if result[:success]

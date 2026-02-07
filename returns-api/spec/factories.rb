@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
+  factory :status_audit_log do
+    return_request { nil }
+    from_status { "MyString" }
+    to_status { "MyString" }
+    event { "MyString" }
+    triggered_by { "MyString" }
+    metadata { "MyText" }
+  end
+
   factory :merchant do
     sequence(:name) { |n| "Merchant #{n}" }
     sequence(:email) { |n| "merchant#{SecureRandom.hex(4)}@example.com" }

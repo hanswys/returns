@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_06_054504) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_07_184251) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -89,6 +89,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_06_054504) do
     t.index ["product_id"], name: "index_return_rules_on_product_id"
   end
 
+  create_table "status_audit_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event"
+    t.string "from_status"
+    t.text "metadata"
+    t.bigint "return_request_id", null: false
+    t.string "to_status"
+    t.string "triggered_by"
+    t.datetime "updated_at", null: false
+    t.index ["return_request_id"], name: "index_status_audit_logs_on_return_request_id"
+  end
+
   add_foreign_key "orders", "merchants"
   add_foreign_key "products", "merchants"
   add_foreign_key "return_requests", "merchants"
@@ -96,4 +108,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_06_054504) do
   add_foreign_key "return_requests", "products"
   add_foreign_key "return_rules", "merchants"
   add_foreign_key "return_rules", "products"
+  add_foreign_key "status_audit_logs", "return_requests"
 end

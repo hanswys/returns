@@ -52,7 +52,8 @@ class GenerateShippingLabelJob < ApplicationJob
       label_generation_error: nil
     )
 
-    # Transition to approved state
+    # Transition to approved state (set actor for audit logging)
+    Current.actor = 'system:label_generator'
     @return_request.approve!
 
     Rails.logger.info "[ShippingLabel] Label generated for ReturnRequest ##{@return_request.id}: #{label_data[:tracking_number]}"

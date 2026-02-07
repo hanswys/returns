@@ -44,6 +44,7 @@ module Api
       end
 
       def approve
+        Current.actor = 'admin:api'
         if @return_request.approve!
           render json: @return_request, serializer: ReturnRequestSerializer
         else
@@ -52,6 +53,7 @@ module Api
       end
 
       def reject
+        Current.actor = 'admin:api'
         if @return_request.reject!
           render json: @return_request, serializer: ReturnRequestSerializer
         else
@@ -60,6 +62,7 @@ module Api
       end
 
       def ship
+        Current.actor = 'admin:api'
         if @return_request.ship!
           render json: @return_request, serializer: ReturnRequestSerializer
         else
@@ -68,6 +71,7 @@ module Api
       end
 
       def mark_received
+        Current.actor = 'admin:api'
         if @return_request.mark_received!
           render json: @return_request, serializer: ReturnRequestSerializer
         else
@@ -76,12 +80,14 @@ module Api
       end
 
       def resolve
+        Current.actor = 'admin:api'
         if @return_request.resolve!
           render json: @return_request, serializer: ReturnRequestSerializer
         else
           render json: { error: 'Cannot resolve return request' }, status: :unprocessable_entity
         end
       end
+
 
       private
 
