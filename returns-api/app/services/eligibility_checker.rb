@@ -28,7 +28,7 @@ class EligibilityChecker
   def call
     return ineligible('no_return_policy', 'This merchant does not have a return policy configured') unless return_rule
 
-    decision = return_rule.eligible?(@order)
+    decision = return_rule.eligible?(@order) # decision object (status, reason, metadata)
 
     if decision.status == :approve
       Result.new(eligible?: true)

@@ -13,7 +13,7 @@ module ReturnRules
     def initialize(order, rules)
       @order = order
       # accept a single ReturnRule, ActiveRecord::Relation, or Array
-      @rules = Array.wrap(rules)
+      @rules = Array.wrap(rules) # loops safely over single item or array
     end
 
     # Returns a ReturnRules::Decision
@@ -34,7 +34,7 @@ module ReturnRules
 
     def evaluate_rule(rule)
       config = rule.respond_to?(:configuration) ? (rule.configuration || {}) : rule
-
+      
       # Normalize keys to strings (JSONB may have symbols)
       config = config.transform_keys(&:to_s) if config.respond_to?(:transform_keys)
 

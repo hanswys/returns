@@ -22,7 +22,7 @@ module Api
       end
 
       def create
-        result = ReturnRequestCreator.call(return_request_params)
+        result = ReturnRequestCreator.call(return_request_params) # calls self.call
 
         if result.success?
           render json: result.return_request, serializer: ReturnRequestSerializer, status: result.status_code

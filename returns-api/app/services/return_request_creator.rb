@@ -32,7 +32,7 @@ class ReturnRequestCreator
     return_request = ReturnRequest.new(@params)
 
     # Validate eligibility using dedicated service (SRP)
-    eligibility = EligibilityChecker.call(return_request)
+    eligibility = EligibilityChecker.call(return_request) 
     unless eligibility.eligible?
       return failure_result(
         error: 'Return not allowed',

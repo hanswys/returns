@@ -108,41 +108,19 @@ class BatchReturnRequestCreator
     @items.each_index.map { |i| "#{@idempotency_key}_#{i}" }
   end
 
+  # Delegate to EligibilityChecker service (DRY - single source of truth)
   def check_eligibility(return_request)
-    order = return_request.order
-    merchant = return_request.merchant
+    result = EligibilityChecker.call(return_request)
 
-    return_rule = ReturnRule.find_by(merchant_id: merchant&.id)
-
-    unless return_rule
-      return {
-        eligible: false,
-        reason: 'no_return_policy',
-        details: 'This merchant does not have a return policy configured'
-      }
-    end
-
-    decision = return_rule.eligible?(order)
-
-    if decision.status == :approve
+    if result.eligible?
       { eligible: true }
     else
       {
         eligible: false,
-        reason: decision.reason || 'not_eligible',
-        details: build_rejection_details(return_rule, order)
+        reason: result.reason,
+        details: result.details
       }
     end
-  end
-
-  def build_rejection_details(return_rule, order)
-    window_days = return_rule.configuration['window_days']
-    order_date = order.order_date.to_date
-    deadline = order_date + window_days.days
-    days_since = (Date.current - order_date).to_i
-
-    "Return window is #{window_days} days. Order was placed #{days_since} days ago " \
-      "(#{order_date.strftime('%B %d, %Y')}). Return deadline was #{deadline.strftime('%B %d, %Y')}."
   end
 
   def empty_items_error
