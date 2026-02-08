@@ -27,30 +27,15 @@ module ReturnRules
         end
 
         # Find strategy that matches the given config
-        # Note: Explicitly reference strategies to ensure they're loaded (Rails autoloading)
+        # Note: Strategies are eager-loaded by config/initializers/return_rules_strategies.rb
         def find_for(config)
-          ensure_strategies_loaded
           strategies.find { |s| s.match?(config) }
         end
 
         # Clear registry (useful for testing)
         def reset!
           @strategies = []
-          @strategies_loaded = false
         end
-
-        private
-
-        # Force-load strategy classes so they can self-register
-        def ensure_strategies_loaded
-          return if @strategies_loaded
-
-          # Reference each strategy class to trigger autoload and registration
-          DateThresholdStrategy
-          PriceThresholdStrategy
-          @strategies_loaded = true
-        end
-
       end
 
       # When included in a strategy, auto-register it
