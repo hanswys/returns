@@ -33,11 +33,11 @@ describe ReturnRules::Strategies::PriceThresholdStrategy do
     end
 
     context 'when order total exceeds threshold' do
-      it 'returns green_return decision' do
+      it 'returns deny decision' do
         order = double('Order', total: 150)
         strategy = described_class.new(order, { 'price_threshold' => 100 })
         decision = strategy.decide
-        expect(decision.green_return?).to be true
+        expect(decision.deny?).to be true
         expect(decision.reason).to eq('over_price_threshold')
       end
     end

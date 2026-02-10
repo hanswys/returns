@@ -65,35 +65,34 @@ describe ReturnRules::Evaluator do
         expect(decision.deny?).to be true
       end
 
-      it 'returns approve if no denies but at least one approves' do
+      it 'returns deny if any rule denies even when others approve' do
         order = double('Order')
         allow(order).to receive(:order_date).and_return(Time.zone.now.to_date - 10.days)
         allow(order).to receive(:total).and_return(150)
         
         rules = [
           double('Rule1', configuration: { 'window_days' => 30 }), # will approve (within window)
-          double('Rule2', configuration: { 'price_threshold' => 100 }) # will green_return (over threshold)
+          double('Rule2', configuration: { 'price_threshold' => 100 }) # will deny (over threshold)
+        ]
+        
+        evaluator = described_class.new(order, rules)
+        decision = evaluator.call
+        expect(decision.deny?).to be true
+      end
+
+      it 'returns approve when all rules approve' do
+        order = double('Order')
+        allow(order).to receive(:order_date).and_return(Time.zone.now.to_date - 10.days)
+        allow(order).to receive(:total).and_return(50)
+        
+        rules = [
+          double('Rule1', configuration: { 'window_days' => 30 }), # will approve
+          double('Rule2', configuration: { 'price_threshold' => 100 }) # will approve
         ]
         
         evaluator = described_class.new(order, rules)
         decision = evaluator.call
         expect(decision.approve?).to be true
-      end
-
-      it 'returns green_return only if no approves or denies' do
-        order = double('Order')
-        allow(order).to receive(:order_date).and_return(Time.zone.now.to_date - 40.days)
-        allow(order).to receive(:total).and_return(150)
-        
-        rules = [
-          double('Rule1', configuration: { 'window_days' => 30 }), # will deny (past window)
-          double('Rule2', configuration: { 'price_threshold' => 100 }) # would green_return
-        ]
-        
-        evaluator = described_class.new(order, rules)
-        decision = evaluator.call
-        # deny has higher precedence than green_return
-        expect(decision.deny?).to be true
       end
     end
 
@@ -115,17 +114,15 @@ describe ReturnRules::Evaluator do
         
         evaluator = described_class.new(order, rule)
         decision = evaluator.call
-        # Strategy will fail gracefully
         expect(decision.deny?).to be true
       end
     end
 
-    context 'with hash-based rule config (no response_to check needed)' do
+    context 'with hash-based rule config (no respond_to check needed)' do
       it 'evaluates a plain hash as rule config' do
         order = double('Order')
         allow(order).to receive(:order_date).and_return(Time.zone.now.to_date - 5.days)
         
-        # Pass config hash directly instead of a rule object
         config = { 'window_days' => 30 }
         evaluator = described_class.new(order, config)
         decision = evaluator.call

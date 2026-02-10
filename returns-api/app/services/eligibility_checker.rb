@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 # Service object for checking return request eligibility
-# Extracted from ReturnRequestCreator for SRP compliance
+# Supports multiple return rules per merchant.
+# Enforces refund_allowed after strategy evaluation.
 #
 # Usage:
 #   result = EligibilityChecker.call(return_request)
@@ -26,35 +27,49 @@ class EligibilityChecker
   end
 
   def call
-    return ineligible('no_return_policy', 'This merchant does not have a return policy configured') unless return_rule
+    return ineligible('no_return_policy', 'This merchant does not have a return policy configured') unless return_rules.any?
 
-    decision = return_rule.eligible?(@order) # decision object (status, reason, metadata)
+    # Step 1: Run all rules through the Evaluator (deny wins)
+    decision = ReturnRules::Evaluator.call(@order, return_rules)
 
-    if decision.status == :approve
-      Result.new(eligible?: true)
-    else
-      ineligible(
+    unless decision.approve?
+      return ineligible(
         decision.reason || 'not_eligible',
-        build_rejection_details
+        build_rejection_details(decision)
       )
     end
+
+    # Step 2: Enforce refund_allowed — if ANY rule disallows refunds, deny
+    unless refund_allowed?
+      return ineligible('refund_not_allowed', 'This merchant does not accept refund returns')
+    end
+
+    Result.new(eligible?: true)
   end
 
   private
 
-  def return_rule
-    @return_rule ||= ReturnRule.find_by(merchant_id: @merchant&.id)
+  def return_rules
+    @return_rules ||= ReturnRule.where(merchant_id: @merchant&.id)
+  end
+
+  def refund_allowed?
+    return_rules.all? { |rule| rule.configuration&.dig('refund_allowed') != false }
   end
 
   def ineligible(reason, details)
     Result.new(eligible?: false, reason: reason, details: details)
   end
 
-  def build_rejection_details
-    return 'Return policy check failed' unless @order && return_rule
+  def build_rejection_details(decision)
+    return 'Return policy check failed' unless @order && return_rules.any?
 
-    window_days = return_rule.configuration['window_days']
-    return 'Return policy configuration missing' unless window_days
+    # Use the first rule with window_days for the detail message
+    rule_with_window = return_rules.find { |r| r.configuration&.key?('window_days') }
+    return "Return policy check failed: #{decision.reason}" unless rule_with_window
+
+    window_days = rule_with_window.configuration['window_days']
+    return "Return policy check failed: #{decision.reason}" unless window_days
 
     order_date = @order.order_date.to_date
     deadline = order_date + window_days.days
@@ -64,3 +79,4 @@ class EligibilityChecker
       "(#{order_date.strftime('%B %d, %Y')}). Return deadline was #{deadline.strftime('%B %d, %Y')}."
   end
 end
+

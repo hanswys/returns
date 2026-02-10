@@ -8,7 +8,6 @@ class ReturnRuleSerializer < ActiveModel::Serializer
   def configuration
     object.configuration.merge({
       'window_days' => object.window_days,
-      'replacement_allowed' => object.replacement_allowed,
       'refund_allowed' => object.refund_allowed,
       'reason' => object.reason
     }).compact

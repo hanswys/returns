@@ -13,19 +13,18 @@ module ReturnRules
     def initialize(order, rules)
       @order = order
       # accept a single ReturnRule, ActiveRecord::Relation, or Array
-      @rules = Array.wrap(rules) # loops safely over single item or array
+      @rules = Array.wrap(rules) # loops safely over single item or array #jsonb
     end
 
     # Returns a ReturnRules::Decision
     def call
       return Decision.new(:deny, reason: 'no_rules') if @rules.blank?
 
-      # Evaluate each rule and combine decisions with precedence: deny > approve > green_return
+      # Evaluate each rule — if ANY rule denies, deny the whole request
       decisions = @rules.map { |rule| evaluate_rule(rule) } # runs it through the strategies
 
       return Decision.new(:deny, reason: 'rule_denied') if decisions.any?(&:deny?)
       return Decision.new(:approve, reason: 'rule_approved') if decisions.any?(&:approve?)
-      return Decision.new(:green_return, reason: 'rule_green') if decisions.any?(&:green_return?)
 
       Decision.new(:deny, reason: 'no_positive_rule')
     end
@@ -34,7 +33,7 @@ module ReturnRules
 
     def evaluate_rule(rule)
       config = rule.respond_to?(:configuration) ? (rule.configuration || {}) : rule
-      
+
       # Normalize keys to strings (JSONB may have symbols)
       config = config.transform_keys(&:to_s) if config.respond_to?(:transform_keys)
 

@@ -45,7 +45,6 @@ FactoryBot.define do
     configuration do
       {
         window_days: 30,
-        replacement_allowed: false,
         refund_allowed: true
       }
     end

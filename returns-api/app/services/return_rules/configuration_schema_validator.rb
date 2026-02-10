@@ -12,17 +12,29 @@ module ReturnRules
   #   end
   #
   class ConfigurationSchemaValidator < ActiveModel::Validator
-    # JSON Schema definition for configuration validation
+    # JSON Schema definition — supports multiple config types via oneOf
     SCHEMA = {
       type: 'object',
-      properties: {
-        window_days: { type: 'integer', minimum: 1 },
-        replacement_allowed: { type: 'boolean' },
-        refund_allowed: { type: 'boolean' },
-        reason: { type: %w[string null] }
-      },
-      required: %w[window_days replacement_allowed refund_allowed],
-      additionalProperties: false
+      oneOf: [
+        {
+          properties: {
+            window_days: { type: 'integer', minimum: 1 },
+            refund_allowed: { type: 'boolean' },
+            reason: { type: %w[string null] }
+          },
+          required: %w[window_days refund_allowed],
+          additionalProperties: false
+        },
+        {
+          properties: {
+            price_threshold: { type: 'number', minimum: 0 },
+            refund_allowed: { type: 'boolean' },
+            reason: { type: %w[string null] }
+          },
+          required: %w[price_threshold refund_allowed],
+          additionalProperties: false
+        }
+      ]
     }.freeze
 
     def validate(record)

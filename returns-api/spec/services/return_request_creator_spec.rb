@@ -6,7 +6,7 @@ RSpec.describe ReturnRequestCreator do
   let(:merchant) { create(:merchant) }
   let(:product) { create(:product, merchant: merchant) }
   let(:order) { create(:order, merchant: merchant, order_date: 5.days.ago) }
-  let!(:return_rule) { create(:return_rule, merchant: merchant, configuration: { 'window_days' => 30, 'replacement_allowed' => true, 'refund_allowed' => true }) }
+  let!(:return_rule) { create(:return_rule, merchant: merchant, configuration: { 'window_days' => 30, 'refund_allowed' => true }) }
 
   let(:valid_params) do
     {

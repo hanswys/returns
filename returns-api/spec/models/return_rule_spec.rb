@@ -7,29 +7,22 @@ describe ReturnRule do
     let(:merchant) { create(:merchant) }
 
     it 'stores and retrieves window_days from configuration JSONB' do
-      rule = create(:return_rule, merchant:, configuration: { window_days: 30, replacement_allowed: true, refund_allowed: false })
+      rule = create(:return_rule, merchant:, configuration: { window_days: 30, refund_allowed: true })
       expect(rule.window_days).to eq(30)
     end
 
-    it 'stores and retrieves replacement_allowed from configuration JSONB' do
-      rule = create(:return_rule, merchant:, configuration: { window_days: 30, replacement_allowed: true, refund_allowed: false })
-      expect(rule.replacement_allowed).to be true
-    end
-
     it 'stores and retrieves refund_allowed from configuration JSONB' do
-      rule = create(:return_rule, merchant:, configuration: { window_days: 30, replacement_allowed: false, refund_allowed: true })
+      rule = create(:return_rule, merchant:, configuration: { window_days: 30, refund_allowed: true })
       expect(rule.refund_allowed).to be true
     end
 
     it 'stores multiple fields in configuration JSONB' do
       rule = create(:return_rule, merchant:, configuration: {
         window_days: 30,
-        replacement_allowed: true,
         refund_allowed: true,
         reason: 'defect'
       })
       expect(rule.window_days).to eq(30)
-      expect(rule.replacement_allowed).to be true
       expect(rule.refund_allowed).to be true
       expect(rule.configuration['reason']).to eq('defect')
     end
@@ -38,8 +31,13 @@ describe ReturnRule do
   describe 'JSON Schema validation' do
     let(:merchant) { create(:merchant) }
 
-    it 'validates valid configuration' do
-      rule = build(:return_rule, merchant:, configuration: { window_days: 30, replacement_allowed: true, refund_allowed: false })
+    it 'validates valid date threshold configuration' do
+      rule = build(:return_rule, merchant:, configuration: { window_days: 30, refund_allowed: true })
+      expect(rule.valid?).to be true
+    end
+
+    it 'validates valid price threshold configuration' do
+      rule = build(:return_rule, merchant:, configuration: { price_threshold: 500, refund_allowed: true })
       expect(rule.valid?).to be true
     end
 
@@ -50,15 +48,15 @@ describe ReturnRule do
     end
 
     it 'rejects invalid window_days type' do
-      rule = build(:return_rule, merchant:, configuration: { window_days: 'thirty', replacement_allowed: true, refund_allowed: false })
+      rule = build(:return_rule, merchant:, configuration: { window_days: 'thirty', refund_allowed: true })
       expect(rule.valid?).to be false
     end
 
     it 'validates configuration with all optional fields' do
       rule = build(:return_rule, merchant:, configuration: {
         window_days: 30,
-        replacement_allowed: true,
-        refund_allowed: false
+        refund_allowed: true,
+        reason: 'Standard returns'
       })
       expect(rule.valid?).to be true
     end
@@ -66,8 +64,14 @@ describe ReturnRule do
 
   describe '#eligible?' do
     let(:merchant) { create(:merchant) }
-    let(:rule) { create(:return_rule, merchant:, configuration: { window_days: 30, replacement_allowed: true, refund_allowed: true }) }
+    let(:rule) { create(:return_rule, merchant:, configuration: { window_days: 30, refund_allowed: true }) }
     let(:order) { create(:order, merchant:, order_date: 10.days.ago) }
+
+    before do
+      ReturnRules::Strategies::Registry.reset!
+      ReturnRules::Strategies::Registry.register(ReturnRules::Strategies::DateThresholdStrategy)
+      ReturnRules::Strategies::Registry.register(ReturnRules::Strategies::PriceThresholdStrategy)
+    end
 
     it 'delegates to ReturnRules::Evaluator' do
       decision = rule.eligible?(order)

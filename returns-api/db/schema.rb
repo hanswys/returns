@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_07_184251) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_054236) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_07_184251) do
     t.string "tracking_number"
     t.datetime "updated_at", null: false
     t.index ["idempotency_key"], name: "index_return_requests_on_idempotency_key", unique: true
+    t.index ["merchant_id", "status", "created_at"], name: "index_return_requests_on_merchant_status_created"
     t.index ["merchant_id"], name: "index_return_requests_on_merchant_id"
     t.index ["order_id", "product_id"], name: "index_return_requests_on_order_id_and_product_id", unique: true
     t.index ["order_id"], name: "index_return_requests_on_order_id"
@@ -87,6 +88,100 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_07_184251) do
     t.index ["merchant_id", "product_id"], name: "index_return_rules_on_merchant_id_and_product_id", unique: true
     t.index ["merchant_id"], name: "index_return_rules_on_merchant_id"
     t.index ["product_id"], name: "index_return_rules_on_product_id"
+  end
+
+  create_table "solid_queue_blocked_executions", force: :cascade do |t|
+    t.string "concurrency_key", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "expires_at", precision: nil, null: false
+    t.bigint "job_id", null: false
+    t.integer "priority", default: 0, null: false
+    t.string "queue_name", null: false
+  end
+
+  create_table "solid_queue_claimed_executions", force: :cascade do |t|
+    t.datetime "created_at", precision: nil, null: false
+    t.bigint "job_id", null: false
+    t.bigint "process_id"
+  end
+
+  create_table "solid_queue_failed_executions", force: :cascade do |t|
+    t.datetime "created_at", precision: nil, null: false
+    t.text "error"
+    t.bigint "job_id", null: false
+  end
+
+  create_table "solid_queue_jobs", force: :cascade do |t|
+    t.string "active_job_id"
+    t.text "arguments"
+    t.string "class_name", null: false
+    t.string "concurrency_key"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "finished_at", precision: nil
+    t.integer "priority", default: 0, null: false
+    t.string "queue_name", null: false
+    t.datetime "scheduled_at", precision: nil
+    t.datetime "updated_at", precision: nil, null: false
+  end
+
+  create_table "solid_queue_pauses", force: :cascade do |t|
+    t.datetime "created_at", precision: nil, null: false
+    t.string "queue_name", null: false
+  end
+
+  create_table "solid_queue_processes", force: :cascade do |t|
+    t.datetime "created_at", precision: nil, null: false
+    t.string "hostname"
+    t.string "kind", null: false
+    t.datetime "last_heartbeat_at", precision: nil, null: false
+    t.text "metadata"
+    t.string "name", null: false
+    t.integer "pid", null: false
+    t.bigint "supervisor_id"
+  end
+
+  create_table "solid_queue_ready_executions", force: :cascade do |t|
+    t.datetime "created_at", precision: nil, null: false
+    t.bigint "job_id", null: false
+    t.integer "priority", default: 0, null: false
+    t.string "queue_name", null: false
+  end
+
+  create_table "solid_queue_recurring_executions", force: :cascade do |t|
+    t.datetime "created_at", precision: nil, null: false
+    t.bigint "job_id", null: false
+    t.datetime "run_at", precision: nil, null: false
+    t.string "task_key", null: false
+  end
+
+  create_table "solid_queue_recurring_tasks", force: :cascade do |t|
+    t.text "arguments"
+    t.string "class_name"
+    t.string "command", limit: 2048
+    t.datetime "created_at", precision: nil, null: false
+    t.text "description"
+    t.string "key", null: false
+    t.integer "priority", default: 0
+    t.string "queue_name"
+    t.string "schedule", null: false
+    t.boolean "static", default: true, null: false
+    t.datetime "updated_at", precision: nil, null: false
+  end
+
+  create_table "solid_queue_scheduled_executions", force: :cascade do |t|
+    t.datetime "created_at", precision: nil, null: false
+    t.bigint "job_id", null: false
+    t.integer "priority", default: 0, null: false
+    t.string "queue_name", null: false
+    t.datetime "scheduled_at", precision: nil, null: false
+  end
+
+  create_table "solid_queue_semaphores", force: :cascade do |t|
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "expires_at", precision: nil, null: false
+    t.string "key", null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.integer "value", default: 1, null: false
   end
 
   create_table "status_audit_logs", force: :cascade do |t|

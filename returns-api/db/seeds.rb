@@ -85,9 +85,13 @@ puts "Created #{orders.count} orders"
 
 puts 'Creating return rules...'
 return_rules = [
-  { merchant: merchants[0], configuration: { window_days: 30, replacement_allowed: true, refund_allowed: true, reason: 'Standard tech returns' } },
-  { merchant: merchants[1], configuration: { window_days: 14, replacement_allowed: true, refund_allowed: false, reason: 'Exchange only for fashion items' } },
-  { merchant: merchants[2], configuration: { window_days: 60, replacement_allowed: true, refund_allowed: true, reason: 'Extended home goods warranty' } }
+  # TechGear Pro: date threshold (30 days) + price threshold ($500)
+  { merchant: merchants[0], configuration: { window_days: 30, refund_allowed: true, reason: 'Standard tech returns' } },
+  { merchant: merchants[0], configuration: { price_threshold: 500, refund_allowed: true, reason: 'Price limit for tech returns' } },
+  # Fashion Forward: date threshold only, NO refunds (exchange only)
+  { merchant: merchants[1], configuration: { window_days: 14, refund_allowed: false, reason: 'Exchange only for fashion items' } },
+  # Home Essentials: generous 60-day window
+  { merchant: merchants[2], configuration: { window_days: 60, refund_allowed: true, reason: 'Extended home goods warranty' } }
 ].map { |attrs| ReturnRule.create!(attrs) }
 
 puts "Created #{return_rules.count} return rules"

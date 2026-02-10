@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_07_184251) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_054236) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_07_184251) do
     t.string "tracking_number"
     t.datetime "updated_at", null: false
     t.index ["idempotency_key"], name: "index_return_requests_on_idempotency_key", unique: true
+    t.index ["merchant_id", "status", "created_at"], name: "index_return_requests_on_merchant_status_created"
     t.index ["merchant_id"], name: "index_return_requests_on_merchant_id"
     t.index ["order_id", "product_id"], name: "index_return_requests_on_order_id_and_product_id", unique: true
     t.index ["order_id"], name: "index_return_requests_on_order_id"

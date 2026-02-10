@@ -22,18 +22,12 @@ describe ReturnRules::Decision do
       decision = described_class.new(:approve)
       expect(decision.approve?).to be true
       expect(decision.deny?).to be false
-      expect(decision.green_return?).to be false
     end
 
     it '#deny? returns true for deny status' do
       decision = described_class.new(:deny)
       expect(decision.deny?).to be true
       expect(decision.approve?).to be false
-    end
-
-    it '#green_return? returns true for green_return status' do
-      decision = described_class.new(:green_return)
-      expect(decision.green_return?).to be true
     end
   end
 

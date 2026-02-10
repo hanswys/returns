@@ -23,7 +23,6 @@ RSpec.describe EligibilityChecker do
       let!(:return_rule) do
         create(:return_rule, merchant: merchant, configuration: {
           'window_days' => 30,
-          'replacement_allowed' => true,
           'refund_allowed' => true
         })
       end

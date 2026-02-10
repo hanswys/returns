@@ -4,7 +4,7 @@ module ReturnRules
   class Decision
     attr_reader :status, :reason, :metadata
 
-    # status: :approve, :deny, :green_return
+    # status: :approve, :deny
     def initialize(status, reason: nil, metadata: {})
       @status = status.to_sym
       @reason = reason
@@ -19,9 +19,7 @@ module ReturnRules
       status == :deny
     end
 
-    def green_return?
-      status == :green_return
-    end
+
 
     def to_h
       { status: status, reason: reason, metadata: metadata }

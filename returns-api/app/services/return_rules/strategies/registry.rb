@@ -39,8 +39,8 @@ module ReturnRules
       end
 
       # When included in a strategy, auto-register it
-      def self.included(base)
-        Registry.register(base)
+      def self.included(base) # triggered by "include Registry" in strategy files
+        Registry.register(base) # adds strategy to @strategies array
       end
     end
   end

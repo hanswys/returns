@@ -23,7 +23,7 @@ module ReturnRules
         if total <= threshold
           ReturnRules::Decision.new(:approve, reason: 'under_price_threshold', metadata: { order_total: total, threshold: threshold })
         else
-          ReturnRules::Decision.new(:green_return, reason: 'over_price_threshold', metadata: { order_total: total, threshold: threshold })
+          ReturnRules::Decision.new(:deny, reason: 'over_price_threshold', metadata: { order_total: total, threshold: threshold })
         end
       end
 

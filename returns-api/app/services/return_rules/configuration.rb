@@ -4,24 +4,18 @@ module ReturnRules
   # Configuration value object that handles type-casting and business validation
   # for return rule configuration settings.
   #
-  # This class encapsulates the configuration attributes and validates that
-  # at least one return option (replacement or refund) is enabled.
-  #
   # @example
-  #   config = ReturnRules::Configuration.new(window_days: 30, replacement_allowed: true, refund_allowed: false)
+  #   config = ReturnRules::Configuration.new(window_days: 30, refund_allowed: true)
   #   config.valid? # => true
-  #   config.to_h   # => { 'window_days' => 30, 'replacement_allowed' => true, 'refund_allowed' => false, 'reason' => nil }
+  #   config.to_h   # => { 'window_days' => 30, 'refund_allowed' => true, 'reason' => nil }
   #
   class Configuration
     include ActiveModel::Model
     include ActiveModel::Attributes
 
     attribute :window_days, :integer
-    attribute :replacement_allowed, :boolean, default: false
     attribute :refund_allowed, :boolean, default: false
     attribute :reason, :string
-
-    validate :at_least_one_option_enabled
 
     # Initialize from a hash, handling both symbol and string keys
     def initialize(attributes = {})
@@ -33,7 +27,6 @@ module ReturnRules
     def to_h
       {
         'window_days' => window_days,
-        'replacement_allowed' => replacement_allowed,
         'refund_allowed' => refund_allowed,
         'reason' => reason
       }.compact
@@ -46,13 +39,8 @@ module ReturnRules
     def normalize_keys(hash)
       return {} unless hash.is_a?(Hash)
 
-      hash.transform_keys(&:to_s).slice('window_days', 'replacement_allowed', 'refund_allowed', 'reason')
-    end
-
-    def at_least_one_option_enabled
-      return if replacement_allowed || refund_allowed
-
-      errors.add(:base, 'At least one of replacement_allowed or refund_allowed must be true')
+      hash.transform_keys(&:to_s).slice('window_days', 'refund_allowed', 'reason')
     end
   end
 end
+

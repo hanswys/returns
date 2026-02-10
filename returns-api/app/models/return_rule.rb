@@ -6,7 +6,7 @@ class ReturnRule < ApplicationRecord
 
   # Store accessor for JSONB configuration fields (accesses them as attributes)
   # First value must be db jsonb
-  store_accessor :configuration, :window_days, :replacement_allowed, :refund_allowed, :reason
+  store_accessor :configuration, :window_days, :refund_allowed, :reason
 
   # Validations
   validates :merchant_id, presence: true
@@ -24,9 +24,6 @@ class ReturnRule < ApplicationRecord
     super(value.present? ? value.to_i : nil)
   end
 
-  def replacement_allowed=(value)
-    super(ActiveModel::Type::Boolean.new.cast(value))
-  end
 
   def refund_allowed=(value)
     super(ActiveModel::Type::Boolean.new.cast(value))
