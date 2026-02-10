@@ -9,6 +9,16 @@ class Rack::Attack
 
   # === Throttle Rules ===
 
+  # Rate limit order lookup: 5 requests per minute per IP
+  throttle('orders/lookup', limit: 5, period: 1.minute) do |req|
+    req.ip if req.path == '/api/v1/orders/lookup' && req.get?
+  end
+
+  # Rate limit return request creation: 10 requests per minute per IP
+  throttle('return_requests/create', limit: 10, period: 1.minute) do |req|
+    req.ip if req.path == '/api/v1/return_requests' && req.post?
+  end
+
   # General API rate limit: 100 requests per minute per IP
   throttle('req/ip', limit: 100, period: 1.minute) do |req|
     req.ip if req.path.start_with?('/api/')

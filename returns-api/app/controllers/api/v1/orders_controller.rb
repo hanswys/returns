@@ -17,7 +17,11 @@ module Api
         )
 
         if @order
-          render json: @order, serializer: OrderSerializer, include: ['merchant.products']
+          token = JsonWebToken.encode(order_id: @order.id, customer_email: @order.customer_email)
+          render json: {
+            order: OrderSerializer.new(@order).as_json,
+            token: token
+          }
         else
           render json: { error: 'Order not found' }, status: :not_found
         end

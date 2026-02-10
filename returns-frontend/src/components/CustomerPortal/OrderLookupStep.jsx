@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useOrderLookup } from '../../hooks/useApi';
+import { setAuthToken } from '../../api/apiClient';
 
 export default function OrderLookupStep({ onOrderFound }) {
   const [email, setEmail] = useState('');
@@ -11,7 +12,9 @@ export default function OrderLookupStep({ onOrderFound }) {
     
     try {
       const response = await orderLookup.mutateAsync({ email, orderNumber });
-      onOrderFound(response.data);
+      const { order, token } = response.data;
+      setAuthToken(token);
+      onOrderFound(order);
     } catch (error) {
       // Error is handled by mutation state
     }

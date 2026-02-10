@@ -3,6 +3,7 @@ import OrderLookupStep from './OrderLookupStep';
 import SelectItemsStep from './SelectItemsStep';
 import ReasonStep from './ReasonStep';
 import ReturnStatus from './ReturnStatus';
+import { setAuthToken } from '../../api/apiClient';
 
 const STEPS = {
   FIND_ORDER: 1,
@@ -33,6 +34,7 @@ export default function CustomerPortal() {
   };
 
   const handleStartOver = () => {
+    setAuthToken(null);
     setCurrentStep(STEPS.FIND_ORDER);
     setOrder(null);
     setSelectedProducts([]);
