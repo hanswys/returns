@@ -25,14 +25,7 @@ export default function MerchantCard({ merchant }) {
         {merchant.address && (
           <p className="text-sm text-gray-600 mb-4">{merchant.address}</p>
         )}
-        <div className="flex gap-2">
-          <button className="flex-1 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition text-sm">
-            View Details
-          </button>
-          <button className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition text-sm">
-            Delete
-          </button>
-        </div>
+
       </div>
     </div>
   );
