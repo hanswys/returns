@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMerchantReturns, useMerchants } from '../../hooks/useApi';
+import { useMerchantReturns, useMerchants, useMerchantAnalytics } from '../../hooks/useApi';
 import { returnRequestsAPI } from '../../api/endpoints';
 import { useQueryClient } from '@tanstack/react-query';
 import AuditLogModal from './AuditLogModal';
@@ -33,9 +33,11 @@ export default function MerchantReturns() {
     selectedMerchant,
     statusFilter || undefined
   );
+  const { data: analyticsResponse } = useMerchantAnalytics(selectedMerchant);
 
   const merchants = merchantsResponse?.data || [];
   const returns = returnsResponse?.data || [];
+  const analytics = analyticsResponse?.data || null;
 
   const handleAction = async (returnId, action) => {
     try {
@@ -53,7 +55,7 @@ export default function MerchantReturns() {
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Returns Dashboard</h2>
         
         {/* Filters */}
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex gap-4 flex-wrap mb-6">
           <select
             value={selectedMerchant}
             onChange={(e) => setSelectedMerchant(e.target.value)}
@@ -84,6 +86,24 @@ export default function MerchantReturns() {
             Refresh
           </button>
         </div>
+
+        {/* Analytics Summary */}
+        {selectedMerchant && analytics && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow">
+              <p className="text-sm opacity-80">Total Returns</p>
+              <p className="text-3xl font-bold">{analytics.summary.total_returns}</p>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow">
+              <p className="text-sm opacity-80">Resolved</p>
+              <p className="text-3xl font-bold">{analytics.summary.by_status?.resolved || 0}</p>
+            </div>
+            <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-4 text-white shadow">
+              <p className="text-sm opacity-80">Pending</p>
+              <p className="text-3xl font-bold">{analytics.summary.by_status?.requested || 0}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {!selectedMerchant ? (
