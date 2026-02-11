@@ -64,12 +64,24 @@ class EligibilityChecker
   def build_rejection_details(decision)
     return 'Return policy check failed' unless @order && return_rules.any?
 
-    # Use the first rule with window_days for the detail message
+    case decision.reason
+    when 'past_window'
+      build_date_threshold_details
+    when 'over_price_threshold'
+      build_price_threshold_details(decision)
+    when 'not_eligible'
+      'This order is not eligible for return based on merchant policies.'
+    else
+      "Return policy check failed: #{decision.reason.humanize}"
+    end
+  end
+
+  def build_date_threshold_details
     rule_with_window = return_rules.find { |r| r.configuration&.key?('window_days') }
-    return "Return policy check failed: #{decision.reason}" unless rule_with_window
+    return "Return window expired." unless rule_with_window
 
     window_days = rule_with_window.configuration['window_days']
-    return "Return policy check failed: #{decision.reason}" unless window_days
+    return "Return window expired." unless window_days
 
     order_date = @order.order_date.to_date
     deadline = order_date + window_days.days
@@ -77,6 +89,18 @@ class EligibilityChecker
 
     "Return window is #{window_days} days. Order was placed #{days_since} days ago " \
       "(#{order_date.strftime('%B %d, %Y')}). Return deadline was #{deadline.strftime('%B %d, %Y')}."
+  end
+
+  def build_price_threshold_details(decision)
+    metadata = decision.metadata || {}
+    threshold = metadata[:threshold]
+    total = metadata[:order_total]
+    
+    if threshold && total
+      "Order total ($#{total}) exceeds the maximum returnable amount of $#{threshold}."
+    else
+      "Order total exceeds the maximum allowed for returns."
+    end
   end
 end
 

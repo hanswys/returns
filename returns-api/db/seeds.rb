@@ -4,8 +4,8 @@
 puts 'Clearing existing data...'
 ReturnRequest.destroy_all
 ReturnRule.destroy_all
-Product.destroy_all
 Order.destroy_all
+Product.destroy_all
 Merchant.destroy_all
 
 puts 'Creating merchants...'
@@ -39,7 +39,8 @@ products_data = {
     { name: 'USB-C Charging Hub', sku: 'TG-UCH-002', price: 49.99, description: '7-port USB-C hub with fast charging' },
     { name: 'Mechanical Keyboard', sku: 'TG-MKB-003', price: 129.99, description: 'RGB mechanical keyboard with Cherry MX switches' },
     { name: 'Gaming Mouse', sku: 'TG-GMS-004', price: 59.99, description: 'High-precision gaming mouse with customizable buttons' },
-    { name: 'Laptop Stand', sku: 'TG-LST-005', price: 39.99, description: 'Adjustable aluminum laptop stand' }
+    { name: 'Laptop Stand', sku: 'TG-LST-005', price: 39.99, description: 'Adjustable aluminum laptop stand' },
+    { name: 'Pro Gaming Laptop', sku: 'TG-PGL-006', price: 1999.99, description: 'High-performance gaming laptop with RTX 4090' }
   ],
   merchants[1] => [
     { name: 'Classic Denim Jacket', sku: 'FF-CDJ-001', price: 89.99, description: 'Vintage-style denim jacket, unisex' },
@@ -93,6 +94,15 @@ orders_data = [
     order_date: 3.days.ago, 
     status: :shipped,
     items: [products[3]] # Mouse
+  },
+  { 
+    merchant: merchants[0], 
+    order_number: 'TG-ORD-1004', 
+    customer_email: 'david.miller@email.com', 
+    customer_name: 'David Miller', 
+    order_date: 5.days.ago, 
+    status: :delivered,
+    items: [products[5]] # Gaming Laptop (Index 5 because new item added at end of merchant 0 list)
   },
   
   # Fashion Forward orders  
@@ -191,5 +201,9 @@ puts '  Order: FF-ORD-2001'
 puts ''
 puts '  Email: diana.prince@email.com'
 puts '  Order: HE-ORD-3001'
+puts ''
+puts '  Email: david.miller@email.com'
+puts '  Order: TG-ORD-1004'
+puts '  (High Value Order - Should trigger Price Threshold)'
 puts ''
 puts '=' * 60
