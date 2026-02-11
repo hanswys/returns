@@ -18,6 +18,9 @@ module Api
 
         if @order
           token = JsonWebToken.encode(order_id: @order.id, customer_email: @order.customer_email)
+          # Preload return_requests for the serializer to avoid N+1
+          @order.return_requests.load 
+          
           render json: {
             order: OrderSerializer.new(@order, include: ['order_items']).as_json,
             token: token
