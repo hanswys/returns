@@ -1,5 +1,7 @@
 class Order < ApplicationRecord
   belongs_to :merchant
+  has_many :order_items, dependent: :destroy
+  has_many :products, through: :order_items
   has_many :return_requests, dependent: :destroy
 
   validates :order_number, presence: true, uniqueness: { scope: :merchant_id }

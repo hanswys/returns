@@ -3,44 +3,35 @@ import { useProducts } from '../../hooks/useApi';
 
 export default function SelectItemsStep({ order, onItemsSelected, onBack }) {
   const [selectedIds, setSelectedIds] = useState([]);
-  const { data: productsResponse, isLoading, isError } = useProducts(order.merchant_id);
+  
+  // Use items directly from the order details (now included in API response)
+  const orderItems = order.order_items || [];
 
-  const products = productsResponse?.data || [];
-
-  const toggleProduct = (productId) => {
+  const toggleItem = (itemId) => {
     setSelectedIds((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId]
     );
   };
 
   const handleContinue = () => {
-    const selectedProducts = products.filter((p) => selectedIds.includes(p.id));
-    onItemsSelected(selectedProducts);
+    // Map selected order_items back to product structure expected by next steps 
+    // or just pass the order_item. Next steps might need product_id.
+    const selectedItems = orderItems.filter((item) => selectedIds.includes(item.id));
+    
+    // Transform to format expected by ReasonStep (needs id, name, price)
+    // We'll pass the product_id as the main identifier for the return creation
+    const itemsForReturn = selectedItems.map(item => ({
+      id: item.product_id, // The backend expects product_id for return creation currently
+      order_item_id: item.id,
+      name: item.product_name,
+      sku: item.product_sku,
+      price: item.price_at_purchase
+    }));
+
+    onItemsSelected(itemsForReturn);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Failed to load products. Please try again.</p>
-        <button onClick={onBack} className="mt-4 text-blue-600 hover:underline">
-          Go Back
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -52,30 +43,33 @@ export default function SelectItemsStep({ order, onItemsSelected, onBack }) {
       </p>
 
       <div className="space-y-3 mb-8">
-        {products.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No products available for this order.</p>
+        {orderItems.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">No items found for this order.</p>
         ) : (
-          products.map((product) => (
+          orderItems.map((item) => (
             <label
-              key={product.id}
+              key={item.id}
               className={`flex items-center p-4 border rounded-lg cursor-pointer transition ${
-                selectedIds.includes(product.id)
+                selectedIds.includes(item.id)
                   ? 'border-blue-500 bg-blue-50'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <input
                 type="checkbox"
-                checked={selectedIds.includes(product.id)}
-                onChange={() => toggleProduct(product.id)}
+                checked={selectedIds.includes(item.id)}
+                onChange={() => toggleItem(item.id)}
                 className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
               <div className="ml-4 flex-1">
-                <p className="font-medium text-gray-900">{product.name}</p>
-                <p className="text-sm text-gray-500">SKU: {product.sku}</p>
+                <p className="font-medium text-gray-900">{item.product_name}</p>
+                <div className="flex gap-4 text-sm text-gray-500">
+                  <span>SKU: {item.product_sku}</span>
+                  <span>Qty: {item.quantity}</span>
+                </div>
               </div>
               <span className="text-gray-900 font-medium">
-                ${parseFloat(product.price).toFixed(2)}
+                ${parseFloat(item.price_at_purchase).toFixed(2)}
               </span>
             </label>
           ))

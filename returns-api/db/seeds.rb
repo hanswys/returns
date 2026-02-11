@@ -67,20 +67,92 @@ puts "Created #{products.count} products"
 puts 'Creating orders...'
 orders_data = [
   # TechGear Pro orders
-  { merchant: merchants[0], order_number: 'TG-ORD-1001', customer_email: 'john.doe@email.com', customer_name: 'John Doe', total_amount: 129.98, order_date: 80.days.ago, status: :delivered },
-  { merchant: merchants[0], order_number: 'TG-ORD-1002', customer_email: 'jane.smith@email.com', customer_name: 'Jane Smith', total_amount: 179.98, order_date: 10.days.ago, status: :delivered },
-  { merchant: merchants[0], order_number: 'TG-ORD-1003', customer_email: 'bob.wilson@email.com', customer_name: 'Bob Wilson', total_amount: 59.99, order_date: 3.days.ago, status: :shipped },
+  { 
+    merchant: merchants[0], 
+    order_number: 'TG-ORD-1001', 
+    customer_email: 'john.doe@email.com', 
+    customer_name: 'John Doe', 
+    order_date: 80.days.ago, 
+    status: :delivered,
+    items: [products[0], products[1]] # Headphones + Hub
+  },
+  { 
+    merchant: merchants[0], 
+    order_number: 'TG-ORD-1002', 
+    customer_email: 'jane.smith@email.com', 
+    customer_name: 'Jane Smith', 
+    order_date: 10.days.ago, 
+    status: :delivered,
+    items: [products[2], products[4]] # Keyboard + Stand
+  },
+  { 
+    merchant: merchants[0], 
+    order_number: 'TG-ORD-1003', 
+    customer_email: 'bob.wilson@email.com', 
+    customer_name: 'Bob Wilson', 
+    order_date: 3.days.ago, 
+    status: :shipped,
+    items: [products[3]] # Mouse
+  },
   
   # Fashion Forward orders  
-  { merchant: merchants[1], order_number: 'FF-ORD-2001', customer_email: 'alice.jones@email.com', customer_name: 'Alice Jones', total_amount: 124.98, order_date: 7.days.ago, status: :delivered },
-  { merchant: merchants[1], order_number: 'FF-ORD-2002', customer_email: 'charlie.brown@email.com', customer_name: 'Charlie Brown', total_amount: 119.99, order_date: 15.days.ago, status: :delivered },
+  { 
+    merchant: merchants[1], 
+    order_number: 'FF-ORD-2001', 
+    customer_email: 'alice.jones@email.com', 
+    customer_name: 'Alice Jones', 
+    order_date: 7.days.ago, 
+    status: :delivered,
+    items: [products[5], products[6]] # Jacket + T-Shirts
+  },
+  { 
+    merchant: merchants[1], 
+    order_number: 'FF-ORD-2002', 
+    customer_email: 'charlie.brown@email.com', 
+    customer_name: 'Charlie Brown', 
+    order_date: 15.days.ago, 
+    status: :delivered,
+    items: [products[8]] # Sneakers
+  },
   
   # Home Essentials orders
-  { merchant: merchants[2], order_number: 'HE-ORD-3001', customer_email: 'diana.prince@email.com', customer_name: 'Diana Prince', total_amount: 254.97, order_date: 8.days.ago, status: :delivered },
-  { merchant: merchants[2], order_number: 'HE-ORD-3002', customer_email: 'bruce.wayne@email.com', customer_name: 'Bruce Wayne', total_amount: 79.99, order_date: 12.days.ago, status: :delivered }
+  { 
+    merchant: merchants[2], 
+    order_number: 'HE-ORD-3001', 
+    customer_email: 'diana.prince@email.com', 
+    customer_name: 'Diana Prince', 
+    order_date: 8.days.ago, 
+    status: :delivered,
+    items: [products[9], products[11], products[12]] # Mugs + Cookware + Sheets
+  },
+  { 
+    merchant: merchants[2], 
+    order_number: 'HE-ORD-3002', 
+    customer_email: 'bruce.wayne@email.com', 
+    customer_name: 'Bruce Wayne', 
+    order_date: 12.days.ago, 
+    status: :delivered,
+    items: [products[13]] # Lamp
+  }
 ]
 
-orders = orders_data.map { |attrs| Order.create!(attrs) }
+orders = orders_data.map do |data|
+  items = data.delete(:items)
+  # Calculate total from items
+  total = items.sum(&:price)
+  
+  order = Order.create!(data.merge(total_amount: total))
+  
+  items.each do |product|
+    OrderItem.create!(
+      order: order,
+      product: product,
+      quantity: 1,
+      price_at_purchase: product.price
+    )
+  end
+  order
+end
 puts "Created #{orders.count} orders"
 
 puts 'Creating return rules...'

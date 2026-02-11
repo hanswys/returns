@@ -19,7 +19,7 @@ module Api
         if @order
           token = JsonWebToken.encode(order_id: @order.id, customer_email: @order.customer_email)
           render json: {
-            order: OrderSerializer.new(@order).as_json,
+            order: OrderSerializer.new(@order, include: ['order_items']).as_json,
             token: token
           }
         else

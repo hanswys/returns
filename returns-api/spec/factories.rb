@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
+  factory :order_item do
+    order
+    product { association :product, merchant: order.merchant }
+    quantity { 1 }
+    price_at_purchase { product.price }
+  end
+
   factory :status_audit_log do
     return_request { nil }
     from_status { "MyString" }

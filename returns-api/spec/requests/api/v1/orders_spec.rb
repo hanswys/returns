@@ -17,6 +17,21 @@ RSpec.describe 'Api::V1::Orders', type: :request do
         decoded = JsonWebToken.decode(json['token'])
         expect(decoded[:order_id]).to eq(order.id)
         expect(decoded[:customer_email]).to eq(order.customer_email)
+
+        # Verify order items included
+        expect(json['order']['order_items']).to be_an(Array)
+        expect(json['order']['order_items'].first['product_name']).to eq(order.order_items.first.product.name) if order.order_items.any?
+      end
+    end
+    
+    context 'with items' do
+      let!(:item) { create(:order_item, order: order) }
+
+      it 'returns items' do
+        get '/api/v1/orders/lookup', params: { email: order.customer_email, order_number: order.order_number }
+        json = JSON.parse(response.body)
+        expect(json['order']['order_items'].length).to eq(1)
+        expect(json['order']['order_items'][0]['id']).to eq(item.id)
       end
     end
 
