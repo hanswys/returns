@@ -104,16 +104,6 @@ module Api
         render json: logs, each_serializer: StatusAuditLogSerializer
       end
 
-      private
-
-      def set_return_request
-        @return_request = ReturnRequest.find(params[:id])
-      end
-
-      def return_request_params
-        params.require(:return_request).permit(:order_id, :product_id, :merchant_id, :reason, :requested_date, :status, :idempotency_key)
-      end
-
       # POST /api/v1/return_requests/batch
       # Batch creation - scoped to customer
       def create_batch
@@ -131,6 +121,18 @@ module Api
           render json: result.error_response, status: :unprocessable_entity
         end
       end
+
+      private
+
+      def set_return_request
+        @return_request = ReturnRequest.find(params[:id])
+      end
+
+      def return_request_params
+        params.require(:return_request).permit(:order_id, :product_id, :merchant_id, :reason, :requested_date, :status, :idempotency_key)
+      end
+
+
 
       def batch_params
         params.permit(

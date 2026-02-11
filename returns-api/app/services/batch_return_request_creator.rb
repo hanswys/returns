@@ -36,6 +36,7 @@ class BatchReturnRequestCreator
       return success_result(existing) if existing.size == @items.size
     end
 
+    first_error = nil
     created_requests = []
 
     ActiveRecord::Base.transaction do
@@ -43,7 +44,8 @@ class BatchReturnRequestCreator
         result = create_single_request(item, index)
 
         unless result[:success]
-          raise ActiveRecord::Rollback, result[:error]
+          first_error = result[:error]
+          raise ActiveRecord::Rollback
         end
 
         created_requests << result[:request]
@@ -58,10 +60,13 @@ class BatchReturnRequestCreator
       end
       success_result(created_requests)
     else
+      # Use the captured specific error details if available
+      details = first_error ? first_error[:details] : 'One or more items failed validation. No returns were created.'
+      
       failure_result(
         error: 'Batch creation failed',
-        reason: 'transaction_rolled_back',
-        details: 'One or more items failed validation. No returns were created.'
+        reason: first_error ? first_error[:reason] : 'transaction_rolled_back',
+        details: details
       )
     end
   end

@@ -70,4 +70,31 @@ RSpec.describe 'Api::V1::ReturnRequests', type: :request do
       end
     end
   end
+
+  describe 'POST /api/v1/return_requests/batch' do
+    let(:batch_params) do
+      {
+        order_id: order.id,
+        merchant_id: merchant.id,
+        reason: 'defective',
+        items: [
+          { product_id: product.id, notes: 'Broken' }
+        ]
+      }
+    end
+
+    context 'with valid token' do
+      it 'creates return requests' do
+        post '/api/v1/return_requests/batch', params: batch_params, headers: headers
+        expect(response).to have_http_status(:created)
+      end
+    end
+
+    context 'without token' do
+      it 'returns unauthorized' do
+        post '/api/v1/return_requests/batch', params: batch_params
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end
